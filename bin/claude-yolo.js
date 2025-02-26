@@ -6,6 +6,14 @@ import path from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import readline from 'readline';
+
+// ANSI color codes
+const RED = '\x1b[31m';
+const YELLOW = '\x1b[33m';
+const CYAN = '\x1b[36m';
+const RESET = '\x1b[0m';
+const BOLD = '\x1b[1m';
 
 // Debug logging function that only logs if DEBUG env var is set
 const debug = (message) => {
@@ -13,6 +21,50 @@ const debug = (message) => {
     console.log(message);
   }
 };
+
+// Function to ask for user consent
+function askForConsent() {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    console.log(`\n${BOLD}${YELLOW}🔥 CLAUDE-YOLO INSTALLATION CONSENT REQUIRED 🔥${RESET}\n`);
+    console.log(`${CYAN}----------------------------------------${RESET}`);
+    console.log(`${BOLD}What is claude-yolo?${RESET}`);
+    console.log(`This package creates a wrapper around the official Claude CLI tool that:`);
+    console.log(`  1. ${RED}BYPASSES safety checks${RESET} by automatically adding the --dangerously-skip-permissions flag`);
+    console.log(`  2. Automatically updates to the latest Claude CLI version`);
+    console.log(`  3. Adds colorful YOLO-themed loading messages\n`);
+
+    console.log(`${BOLD}${RED}⚠️ IMPORTANT SECURITY WARNING ⚠️${RESET}`);
+    console.log(`The ${BOLD}--dangerously-skip-permissions${RESET} flag was designed for use in containers`);
+    console.log(`and bypasses important safety checks. This includes ignoring file access`);
+    console.log(`permissions that protect your system and privacy.\n`);
+
+    console.log(`${BOLD}By using claude-yolo:${RESET}`);
+    console.log(`  • You acknowledge these safety checks are being bypassed`);
+    console.log(`  • You understand this may allow Claude CLI to access sensitive files`);
+    console.log(`  • You accept full responsibility for any security implications\n`);
+
+    console.log(`${CYAN}----------------------------------------${RESET}\n`);
+
+    rl.question(`${YELLOW}Do you consent to using claude-yolo with these modifications? (yes/no): ${RESET}`, (answer) => {
+      rl.close();
+      const lowerAnswer = answer.toLowerCase().trim();
+      if (lowerAnswer === 'yes' || lowerAnswer === 'y') {
+        console.log(`\n${YELLOW}🔥 YOLO MODE APPROVED 🔥${RESET}`);
+        resolve(true);
+      } else {
+        console.log(`\n${CYAN}Aborted. YOLO mode not activated.${RESET}`);
+        console.log(`If you want the official Claude CLI with normal safety features, run:`);
+        console.log(`claude`);
+        resolve(false);
+      }
+    });
+  });
+}
 
 // Get the directory of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -71,65 +123,96 @@ async function checkForUpdates() {
 const claudeDir = path.join(nodeModulesDir, 'node_modules', '@anthropic-ai', 'claude-code');
 const originalCliPath = path.join(claudeDir, 'cli.mjs');
 const yoloCliPath = path.join(claudeDir, 'cli-yolo.mjs');
+const consentFlagPath = path.join(claudeDir, '.claude-yolo-consent');
 
-// Check and update Claude package first
-await checkForUpdates();
+// Main function to run the application
+async function run() {
+  // Check and update Claude package first
+  await checkForUpdates();
 
-if (!fs.existsSync(originalCliPath)) {
-  console.error(`Error: ${originalCliPath} not found. Make sure @anthropic-ai/claude-code is installed.`);
-  process.exit(1);
+  if (!fs.existsSync(originalCliPath)) {
+    console.error(`Error: ${originalCliPath} not found. Make sure @anthropic-ai/claude-code is installed.`);
+    process.exit(1);
+  }
+
+  // Check if consent is needed
+  const consentNeeded = !fs.existsSync(yoloCliPath) || !fs.existsSync(consentFlagPath);
+  
+  // If consent is needed and not already given, ask for it
+  if (consentNeeded) {
+    const consent = await askForConsent();
+    if (!consent) {
+      // User didn't consent, exit
+      process.exit(1);
+    }
+    
+    // Create a flag file to remember that consent was given
+    try {
+      fs.writeFileSync(consentFlagPath, 'consent-given');
+      debug("Created consent flag file");
+    } catch (err) {
+      debug(`Error creating consent flag file: ${err.message}`);
+      // Continue anyway
+    }
+  }
+
+  // Read the original CLI file content
+  let cliContent = fs.readFileSync(originalCliPath, 'utf8');
+
+  // Replace getIsDocker() calls with true
+  cliContent = cliContent.replace(/[a-zA-Z0-9_]*\.getIsDocker\(\)/g, 'true');
+  debug("Replaced all instances of *.getIsDocker() with true");
+
+  // Replace hasInternetAccess() calls with false
+  cliContent = cliContent.replace(/[a-zA-Z0-9_]*\.hasInternetAccess\(\)/g, 'false');
+  debug("Replaced all instances of *.hasInternetAccess() with false");
+
+  // Add warning message
+  console.log(`${YELLOW}🔥 YOLO MODE ACTIVATED 🔥${RESET}`);
+
+  // Replace the loading messages array with YOLO versions
+  const originalArray = '["Accomplishing","Actioning","Actualizing","Baking","Brewing","Calculating","Cerebrating","Churning","Clauding","Coalescing","Cogitating","Computing","Conjuring","Considering","Cooking","Crafting","Creating","Crunching","Deliberating","Determining","Doing","Effecting","Finagling","Forging","Forming","Generating","Hatching","Herding","Honking","Hustling","Ideating","Inferring","Manifesting","Marinating","Moseying","Mulling","Mustering","Musing","Noodling","Percolating","Pondering","Processing","Puttering","Reticulating","Ruminating","Schlepping","Shucking","Simmering","Smooshing","Spinning","Stewing","Synthesizing","Thinking","Transmuting","Vibing","Working"]';
+  const yoloSuffixes = [
+    ` ${RED}(safety's off, hold on tight)${RESET}`,
+    ` ${YELLOW}(all gas, no brakes, lfg)${RESET}`,
+    ` ${BOLD}\x1b[35m(yolo mode engaged)${RESET}`,
+    ` ${CYAN}(dangerous mode! I guess you can just do things)${RESET}`
+  ];
+
+  // Function to add a random YOLO suffix to each word in the array
+  const addYoloSuffixes = (arrayStr) => {
+    try {
+      const array = JSON.parse(arrayStr);
+      const yoloArray = array.map(word => {
+        const randomSuffix = yoloSuffixes[Math.floor(Math.random() * yoloSuffixes.length)];
+        return word + randomSuffix;
+      });
+      return JSON.stringify(yoloArray);
+    } catch (e) {
+      debug(`Error modifying loading messages array: ${e.message}`);
+      return arrayStr;
+    }
+  };
+
+  cliContent = cliContent.replace(originalArray, addYoloSuffixes(originalArray));
+  debug("Replaced loading messages with YOLO versions");
+
+  // Write the modified content to a new file, leaving the original untouched
+  fs.writeFileSync(yoloCliPath, cliContent);
+  debug(`Created modified CLI at ${yoloCliPath}`);
+  debug("Modifications complete. The --dangerously-skip-permissions flag should now work everywhere.");
+
+  // Add the --dangerously-skip-permissions flag to the command line arguments
+  // This will ensure it's passed to the CLI even if the user didn't specify it
+  process.argv.splice(2, 0, '--dangerously-skip-permissions');
+  debug("Added --dangerously-skip-permissions flag to command line arguments");
+
+  // Now import the modified CLI
+  await import(yoloCliPath);
 }
 
-// Read the original CLI file content
-let cliContent = fs.readFileSync(originalCliPath, 'utf8');
-
-// Replace getIsDocker() calls with true
-cliContent = cliContent.replace(/[a-zA-Z0-9_]*\.getIsDocker\(\)/g, 'true');
-debug("Replaced all instances of *.getIsDocker() with true");
-
-// Replace hasInternetAccess() calls with false
-cliContent = cliContent.replace(/[a-zA-Z0-9_]*\.hasInternetAccess\(\)/g, 'false');
-debug("Replaced all instances of *.hasInternetAccess() with false");
-
-// Add warning message
-console.log("\x1b[33m🔥 YOLO MODE ACTIVATED 🔥\x1b[0m");
-
-// Replace the loading messages array with YOLO versions
-const originalArray = '["Accomplishing","Actioning","Actualizing","Baking","Brewing","Calculating","Cerebrating","Churning","Clauding","Coalescing","Cogitating","Computing","Conjuring","Considering","Cooking","Crafting","Creating","Crunching","Deliberating","Determining","Doing","Effecting","Finagling","Forging","Forming","Generating","Hatching","Herding","Honking","Hustling","Ideating","Inferring","Manifesting","Marinating","Moseying","Mulling","Mustering","Musing","Noodling","Percolating","Pondering","Processing","Puttering","Reticulating","Ruminating","Schlepping","Shucking","Simmering","Smooshing","Spinning","Stewing","Synthesizing","Thinking","Transmuting","Vibing","Working"]';
-const yoloSuffixes = [
-  " \x1b[31m(safety's off, hold on tight)\x1b[0m",
-  " \x1b[33m(all gas, no brakes, lfg)\x1b[0m",
-  " \x1b[35m(yolo mode engaged)\x1b[0m",
-  " \x1b[36m(dangerous mode! I guess you can just do things)\x1b[0m"
-];
-
-// Function to add a random YOLO suffix to each word in the array
-const addYoloSuffixes = (arrayStr) => {
-  try {
-    const array = JSON.parse(arrayStr);
-    const yoloArray = array.map(word => {
-      const randomSuffix = yoloSuffixes[Math.floor(Math.random() * yoloSuffixes.length)];
-      return word + randomSuffix;
-    });
-    return JSON.stringify(yoloArray);
-  } catch (e) {
-    debug(`Error modifying loading messages array: ${e.message}`);
-    return arrayStr;
-  }
-};
-
-cliContent = cliContent.replace(originalArray, addYoloSuffixes(originalArray));
-debug("Replaced loading messages with YOLO versions");
-
-// Write the modified content to a new file, leaving the original untouched
-fs.writeFileSync(yoloCliPath, cliContent);
-debug(`Created modified CLI at ${yoloCliPath}`);
-debug("Modifications complete. The --dangerously-skip-permissions flag should now work everywhere.");
-
-// Add the --dangerously-skip-permissions flag to the command line arguments
-// This will ensure it's passed to the CLI even if the user didn't specify it
-process.argv.splice(2, 0, '--dangerously-skip-permissions');
-debug("Added --dangerously-skip-permissions flag to command line arguments");
-
-// Now import the modified CLI
-import(yoloCliPath);
+// Run the main function
+run().catch(err => {
+  console.error("Error:", err);
+  process.exit(1);
+});

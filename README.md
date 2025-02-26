@@ -10,9 +10,13 @@ A wrapper for the Claude CLI that ALWAYS enables --dangerously-skip-permissions 
 npm install -g claude-yolo
 ```
 
-During installation, you will be presented with a consent prompt explaining the security implications. You must explicitly agree to continue with the installation.
+The first time you run `claude-yolo`, you will be presented with a consent prompt explaining the security implications. You must explicitly agree to continue.
 
 <img width="750" alt="image" src="https://github.com/user-attachments/assets/f8e07cf0-6c43-4663-b9e2-f61b1afb4e99" />
+
+Your consent choice is remembered for future runs.
+
+GitHub: [https://github.com/eastlondoner/claude-yolo](https://github.com/eastlondoner/claude-yolo)
 
 ## Usage
 
@@ -33,9 +37,15 @@ This wrapper:
 5. Adds the `--dangerously-skip-permissions` flag to command line arguments
 6. Imports the modified copy of the CLI
 
+## New in Version 1.6.1
+
+- **Runtime Consent Check**: Now requires explicit user consent on first run
+- **Consent Persistence**: Remembers user consent for future runs
+- **Fixed Global Installation**: Consent prompt will properly show for both local and global installations
+
 ## New in Version 1.6.0
 
-- **Installation Consent Prompt**: Now requires explicit user consent during installation
+- **Installation Consent Prompt**: Added explicit user consent during installation
 - **Enhanced Security Warnings**: Clear explanations of the security implications
 - **Installation Abort Option**: Users can cancel installation if they don't agree with the security implications
 
