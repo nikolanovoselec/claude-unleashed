@@ -7,6 +7,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import readline from 'readline';
+import punycode from 'punycode';
 
 // ANSI color codes
 const RED = '\x1b[31m';
@@ -158,6 +159,10 @@ async function run() {
 
   // Read the original CLI file content
   let cliContent = fs.readFileSync(originalCliPath, 'utf8');
+
+  // Replace all instances of "punycode" with "punycode/"
+  cliContent = cliContent.replace(/"punycode"/g, '"punycode/"');
+  debug('Replaced all instances of "punycode" with "punycode/"');
 
   // Replace getIsDocker() calls with true
   cliContent = cliContent.replace(/[a-zA-Z0-9_]*\.getIsDocker\(\)/g, 'true');
