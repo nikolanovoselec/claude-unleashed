@@ -12,9 +12,7 @@ npm install -g claude-yolo
 
 During installation, you will be presented with a consent prompt explaining the security implications. You must explicitly agree to continue with the installation.
 
-![Consent Prompt](/installation-consent.png)
-
-GitHub: [https://github.com/eastlondoner/claude-yolo](https://github.com/eastlondoner/claude-yolo)
+<img width="750" alt="image" src="https://github.com/user-attachments/assets/f8e07cf0-6c43-4663-b9e2-f61b1afb4e99" />
 
 ## Usage
 
