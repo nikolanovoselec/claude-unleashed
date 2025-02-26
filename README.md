@@ -1,8 +1,8 @@
 # Claude YOLO
 
-A wrapper for the Claude CLI that always enables danger mode by bypassing Docker and internet permission checks.
+A wrapper for the Claude CLI that ALWAYS enables --dangerously-skip-permissions mode AND bypasses Docker and internet permission checks so that you can run in danger mode anywhere, anytime.
 
-⚠️ **SECURITY WARNING**: This wrapper bypasses important safety checks by forcibly adding the `--dangerously-skip-permissions` flag to all commands. This bypasses file access permissions that protect your system and privacy.
+⚠️ **SECURITY WARNING**: This wrapper bypasses important safety checks! This completely bypasses the "human in the loop" checks, this could delete your data, leak your secrets and even brick your computer. Use at your own risk.
 
 ## Installation
 
