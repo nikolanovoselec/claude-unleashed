@@ -7,7 +7,6 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import readline from 'readline';
-import punycode from 'punycode';
 
 // ANSI color codes
 const RED = '\x1b[31m';
