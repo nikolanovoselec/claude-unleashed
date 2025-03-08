@@ -6,7 +6,7 @@
     "claude-yolo": "./bin/claude-yolo.js"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "0.2.14",
+    "@anthropic-ai/claude-code": "0.2.35",
     "punycode": "latest"
   },
   "type": "module",

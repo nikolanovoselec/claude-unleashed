@@ -121,7 +121,15 @@ async function checkForUpdates() {
 
 // Path to the Claude CLI file
 const claudeDir = path.join(nodeModulesDir, 'node_modules', '@anthropic-ai', 'claude-code');
-const originalCliPath = path.join(claudeDir, 'cli.mjs');
+let originalCliPath = path.join(claudeDir, 'cli.mjs');
+if(!fs.existsSync(originalCliPath)) {
+  originalCliPath = path.join(claudeDir, 'cli.js');
+  if(!fs.existsSync(originalCliPath)) {
+    console.error(`Error: ${originalCliPath} not found. Make sure @anthropic-ai/claude-code is installed.`);
+    process.exit(1);
+  }
+}
+
 const yoloCliPath = path.join(claudeDir, 'cli-yolo.mjs');
 const consentFlagPath = path.join(claudeDir, '.claude-yolo-consent');
 
