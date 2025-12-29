@@ -19,7 +19,7 @@ get_mode() {
     if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     else
-        echo "SAFE"  # Výchozí je bezpečný režim
+        echo "YOLO"  # Default to YOLO mode
     fi
 }
 
@@ -89,14 +89,10 @@ case "$1" in
         # Zobrazit režim před spuštěním
         if [ "$MODE" = "YOLO" ]; then
             echo -e "${YELLOW}[YOLO]${RESET} Running Claude in YOLO mode..."
-            # Check if claude-yolo is installed
-            if command -v claude-yolo &> /dev/null; then
-                claude-yolo "$@"
-            else
-                echo -e "${RED}Error: claude-yolo is not installed${RESET}"
-                echo -e "Install it with: ${CYAN}npm install -g claude-yolo${RESET}"
-                exit 1
-            fi
+            # Get the directory of this script
+            SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+            # Run the local claude-yolo.js
+            node "$SCRIPT_DIR/claude-yolo.js" "$@"
         else
             echo -e "${CYAN}[SAFE]${RESET} Running Claude in SAFE mode..."
             # Check if claude is installed
