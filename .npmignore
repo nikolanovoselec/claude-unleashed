@@ -1,4 +1,31 @@
+# Development files
+.cursor/
+.specstory/
+.mcp.json
+.cursorindexingignore
+AGENTS.md
 generate-screenshot.js
-.npmignore
-.git
+
+# Test files
+test.txt
+demo.txt
+yolo-test.txt
+
+# Node modules
+node_modules/
+
+# Git files
+.git/
 .gitignore
+.npmignore
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude local settings
+.claude/
