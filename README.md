@@ -36,7 +36,7 @@ git clone https://github.com/nikolanovoselec/claude-unleashed.git
 cd claude-unleashed && npm link
 ```
 
-This installs three binaries: `claude+` (primary), `claude-unleashed`, and `cu` (short alias).
+This installs two binaries: `claude-unleashed` and `cu` (short alias).
 
 The first time you run it, you'll see a consent prompt explaining the security implications. You must explicitly agree to continue. Consent is stored at `~/.claude_unleashed_consent` and persists across npm reinstalls.
 
@@ -46,31 +46,35 @@ The first time you run it, you'll see a consent prompt explaining the security i
 
 | Binary | Description |
 |--------|-------------|
-| `claude+` | Primary command |
-| `claude-unleashed` | Full name alias |
+| `claude-unleashed` | Primary command |
 | `cu` | Short alias with mode switching |
 
 ### Command-line flags
 
 ```bash
 # Run in Unleashed mode (default) -- any of these work:
-claude+
 claude-unleashed
 cu
 
 # Run in Safe mode (normal Claude CLI behavior)
-claude+ --safe
-claude+ --no-yolo
+claude-unleashed --safe
+claude-unleashed --no-yolo
 
 # Switch modes persistently
-claude+ mode yolo
-claude+ mode safe
+claude-unleashed mode yolo
+claude-unleashed mode safe
 
 # Check current mode
-claude+ mode
+claude-unleashed mode
 
 # Disable auto-updates (useful for locked-down environments)
-claude+ --no-update
+claude-unleashed --no-update
+
+# Pin to a specific upstream version
+claude-unleashed --pin-version=2.1.25
+
+# Suppress upstream CLI installation checks
+claude-unleashed --disable-installation-checks
 ```
 
 ### The `cu` wrapper script
@@ -104,37 +108,44 @@ When running in non-interactive environments (Docker, CI, automated scripts):
 
 | Variable | CLI flag | Effect |
 |----------|----------|--------|
-| `CLAUDE_YOLO_SILENT=1` | `--silent` | Suppress all startup banners and npm update output |
-| `CLAUDE_YOLO_SKIP_CONSENT=1` | `--no-consent` | Skip interactive consent prompt and auto-accept |
+| `CLAUDE_UNLEASHED_SILENT=1` | `--silent` | Suppress all startup banners and npm update output |
+| `CLAUDE_UNLEASHED_SKIP_CONSENT=1` | `--no-consent` | Skip interactive consent prompt and auto-accept |
 | `CLAUDE_UNLEASHED_NO_UPDATE=1` | `--no-update` | Disable auto-update checks entirely |
 | `CLAUDE_UNLEASHED_CHANNEL` | `--stable` | Update channel: `latest` (default) or `stable` |
+| `CLAUDE_UNLEASHED_VERSION` | `--pin-version=X.Y.Z` | Pin to a specific upstream CLI version |
+| `DISABLE_INSTALLATION_CHECKS=1` | `--disable-installation-checks` | Suppress upstream CLI deprecation warning (always set internally) |
 | `DEBUG=1` | -- | Show debug output including full patch report |
+
+> **Legacy env vars:** `CLAUDE_YOLO_SILENT` and `CLAUDE_YOLO_SKIP_CONSENT` still work for backwards compatibility.
 
 All flags and environment variables can be freely combined:
 
 ```bash
 # Fully non-interactive, no output noise
-claude+ --silent --no-consent
+claude-unleashed --silent --no-consent
 
 # Same with env vars (better for Dockerfiles and CI)
-CLAUDE_YOLO_SILENT=1 CLAUDE_YOLO_SKIP_CONSENT=1 claude+
+CLAUDE_UNLEASHED_SILENT=1 CLAUDE_UNLEASHED_SKIP_CONSENT=1 claude-unleashed
 
 # Locked-down: silent, no consent prompt, no update checks
-CLAUDE_YOLO_SILENT=1 CLAUDE_YOLO_SKIP_CONSENT=1 CLAUDE_UNLEASHED_NO_UPDATE=1 claude+
+CLAUDE_UNLEASHED_SILENT=1 CLAUDE_UNLEASHED_SKIP_CONSENT=1 CLAUDE_UNLEASHED_NO_UPDATE=1 claude-unleashed
+
+# Pin to a known-good version
+CLAUDE_UNLEASHED_VERSION=2.1.25 claude-unleashed --silent --no-consent
 ```
 
 ### Dockerfile example
 
 ```dockerfile
-ENV CLAUDE_YOLO_SILENT=1
-ENV CLAUDE_YOLO_SKIP_CONSENT=1
+ENV CLAUDE_UNLEASHED_SILENT=1
+ENV CLAUDE_UNLEASHED_SKIP_CONSENT=1
 ENV CLAUDE_UNLEASHED_NO_UPDATE=1
 RUN npm install -g github:nikolanovoselec/claude-unleashed
 ```
 
 ### Consent bypass note
 
-`CLAUDE_YOLO_SKIP_CONSENT=1` is designed for CI/container environments where interactive prompts are impossible. It auto-accepts the consent on your behalf. Only use this when you have already reviewed and accepted the security implications.
+`CLAUDE_UNLEASHED_SKIP_CONSENT=1` is designed for CI/container environments where interactive prompts are impossible. It auto-accepts the consent on your behalf. Only use this when you have already reviewed and accepted the security implications.
 
 ## Configuration
 
@@ -144,7 +155,7 @@ By default, `claude-unleashed` tracks the `latest` npm dist-tag of `@anthropic-a
 
 ```bash
 # 1. CLI flag (one-time)
-claude+ --stable
+claude-unleashed --stable
 
 # 2. Environment variable
 export CLAUDE_UNLEASHED_CHANNEL=stable
@@ -181,7 +192,7 @@ lib/
     root-check.patch.js     [required] getuid/geteuid === 0 -> false
     punycode.patch.js       [optional] Fix Node.js punycode deprecation
     plan-autoaccept.patch.js [optional] Auto-accept plan mode
-    loading-messages.patch.js [optional] YOLO-themed loading messages
+    loading-messages.patch.js [optional] Unleashed-themed loading messages
 ```
 
 ### Patch system
@@ -203,7 +214,7 @@ In Safe mode, it runs the original Claude CLI without modifications.
 ## Debugging
 
 ```bash
-DEBUG=1 claude+
+DEBUG=1 claude-unleashed
 ```
 
 This shows the full patch report with status for each patch (OK / SKIP / FAIL).
