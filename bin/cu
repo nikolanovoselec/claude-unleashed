@@ -86,8 +86,13 @@ case "$1" in
         # Run Claude in current mode
         MODE=$(get_mode)
 
-        # Check if --silent flag is present
+        # Check if silent mode is active
         SILENT=0
+        # Check env var first
+        [ "$CLAUDE_UNLEASHED_SILENT" = "1" ] || [ "$CLAUDE_UNLEASHED_SILENT" = "true" ] && SILENT=1
+        # Also check legacy env var
+        [ "$CLAUDE_YOLO_SILENT" = "1" ] || [ "$CLAUDE_YOLO_SILENT" = "true" ] && SILENT=1
+        # Check CLI flag
         for arg in "$@"; do
             [ "$arg" = "--silent" ] && SILENT=1 && break
         done
