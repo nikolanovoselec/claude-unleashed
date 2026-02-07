@@ -31,7 +31,7 @@ describe('loading-messages patch', () => {
     expect(parsed.length).toBe(56);
   });
 
-  it('all items have YOLO suffixes (contain ANSI codes)', () => {
+  it('all items have themed suffixes (contain ANSI codes)', () => {
     const source = `var x=${ORIGINAL_ARRAY};`;
     const result = patch.apply(source);
     const match = result.match(/var x=(\[.*?\]);/);

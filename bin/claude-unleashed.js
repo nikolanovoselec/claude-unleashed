@@ -27,20 +27,21 @@ async function run() {
   const args = process.argv.slice(2);
   if (args[0] === 'mode') {
     if (args[1] === 'yolo') {
-      console.log(`${YELLOW}🔥 Switching to YOLO mode...${RESET}`);
-      console.log(`${RED}⚠️  WARNING: All safety checks will be DISABLED!${RESET}`);
+      console.log(`${YELLOW}Switching to Unleashed mode...${RESET}`);
+      console.log(`${RED}Warning: All safety checks will be disabled${RESET}`);
       setMode('YOLO');
-      console.log(`${YELLOW}✓ YOLO mode activated${RESET}`);
+      console.log(`${YELLOW}Unleashed mode activated${RESET}`);
       return;
     } else if (args[1] === 'safe') {
-      console.log(`${CYAN}🛡️  Switching to SAFE mode...${RESET}`);
-      console.log(`${GREEN}✓ Safety checks will be enabled${RESET}`);
+      console.log(`${CYAN}Switching to Safe mode...${RESET}`);
+      console.log(`${GREEN}Safety checks will be enabled${RESET}`);
       setMode('SAFE');
-      console.log(`${CYAN}✓ SAFE mode activated${RESET}`);
+      console.log(`${CYAN}Safe mode activated${RESET}`);
       return;
     } else {
       const currentMode = getMode();
-      console.log(`Current mode: ${currentMode === 'YOLO' ? YELLOW : CYAN}${currentMode}${RESET}`);
+      const displayMode = currentMode === 'YOLO' ? 'Unleashed' : 'Safe';
+      console.log(`Current mode: ${currentMode === 'YOLO' ? YELLOW : CYAN}${displayMode}${RESET}`);
       return;
     }
   }
@@ -50,14 +51,14 @@ async function run() {
   // SAFE MODE — run original CLI unmodified
   if (safeMode) {
     prepareSafeArgv();
-    if (!isSilent) console.log(`${CYAN}[SAFE] Running Claude in SAFE mode${RESET}`);
+    if (!isSilent) console.log(`${CYAN}[Safe] Running Claude in Safe mode${RESET}`);
     await maybeUpdate();
     await import(originalCliPath);
     return;
   }
 
-  // YOLO MODE
-  if (!isSilent) console.log(`${YELLOW}[YOLO] Running Claude in YOLO mode${RESET}`);
+  // Unleashed mode
+  if (!isSilent) console.log(`${YELLOW}[Unleashed] Running Claude in Unleashed mode${RESET}`);
   prepareYoloArgv();
 
   await maybeUpdate();
@@ -78,7 +79,7 @@ async function run() {
   // Apply declarative patch system
   applyPatches({ originalCliPath, yoloCliPath });
 
-  if (!isSilent) console.log(`${YELLOW}🔥 YOLO MODE ACTIVATED 🔥${RESET}`);
+  if (!isSilent) console.log(`${YELLOW}Unleashed mode activated${RESET}`);
 
   await import(yoloCliPath);
 }

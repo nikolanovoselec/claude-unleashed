@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Claude Unleashed YOLO/SAFE Mode Wrapper Script
+# Claude Unleashed Mode Wrapper Script
 # Usage: cu /YON | /YOFF | /STATUS | /HELP | [claude commands]
 
 # Output colors
@@ -19,7 +19,7 @@ get_mode() {
     if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     else
-        echo "YOLO"  # Default to YOLO mode
+        echo "YOLO"  # Default to Unleashed mode
     fi
 }
 
@@ -31,19 +31,19 @@ set_mode() {
 # Handle arguments
 case "$1" in
     /YON)
-        echo -e "${YELLOW}${BOLD}🔥 ACTIVATING YOLO MODE 🔥${RESET}"
-        echo -e "${RED}⚠️  WARNING: All safety checks will be DISABLED!${RESET}"
-        echo -e "${RED}⚠️  Claude can access ANY file without asking!${RESET}"
+        echo -e "${YELLOW}${BOLD}Activating Unleashed mode${RESET}"
+        echo -e "${RED}Warning: All safety checks will be disabled${RESET}"
+        echo -e "${RED}Claude can access any file without asking${RESET}"
         set_mode "YOLO"
-        echo -e "${YELLOW}✓ YOLO mode is now ON${RESET}"
+        echo -e "${YELLOW}Unleashed mode is now ON${RESET}"
         ;;
 
     /YOFF)
-        echo -e "${CYAN}${BOLD}🛡️  ACTIVATING SAFE MODE 🛡️${RESET}"
-        echo -e "${GREEN}✓ Safety checks will be enabled${RESET}"
-        echo -e "${GREEN}✓ Claude will ask for permissions${RESET}"
+        echo -e "${CYAN}${BOLD}Activating Safe mode${RESET}"
+        echo -e "${GREEN}Safety checks will be enabled${RESET}"
+        echo -e "${GREEN}Claude will ask for permissions${RESET}"
         set_mode "SAFE"
-        echo -e "${CYAN}✓ YOLO mode is now OFF (Safe mode ON)${RESET}"
+        echo -e "${CYAN}Safe mode is now ON${RESET}"
         ;;
 
     /STATUS)
@@ -51,11 +51,11 @@ case "$1" in
         echo -e "${BOLD}Claude Unleashed Status:${RESET}"
         echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         if [ "$MODE" = "YOLO" ]; then
-            echo -e "Mode: ${YELLOW}${BOLD}YOLO${RESET} 🔥"
+            echo -e "Mode: ${YELLOW}${BOLD}Unleashed${RESET}"
             echo -e "Safety: ${RED}DISABLED${RESET}"
             echo -e "Permissions: ${RED}BYPASSED${RESET}"
         else
-            echo -e "Mode: ${CYAN}${BOLD}SAFE${RESET} 🛡️"
+            echo -e "Mode: ${CYAN}${BOLD}Safe${RESET}"
             echo -e "Safety: ${GREEN}ENABLED${RESET}"
             echo -e "Permissions: ${GREEN}REQUIRED${RESET}"
         fi
@@ -65,16 +65,16 @@ case "$1" in
     /HELP|/H|/?)
         echo -e "${BOLD}Claude Unleashed (cu) - Help${RESET}"
         echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo -e "${CYAN}cu /YON${RESET}     - Enable YOLO mode (bypass safety)"
-        echo -e "${CYAN}cu /YOFF${RESET}    - Disable YOLO mode (safe mode)"
+        echo -e "${CYAN}cu /YON${RESET}     - Enable Unleashed mode (bypass safety)"
+        echo -e "${CYAN}cu /YOFF${RESET}    - Enable Safe mode"
         echo -e "${CYAN}cu /STATUS${RESET}  - Show current mode"
         echo -e "${CYAN}cu /HELP${RESET}    - Show this help"
-        echo -e "${CYAN}cu [args]${RESET}   - Run claude with current mode"
+        echo -e "${CYAN}cu [args]${RESET}   - Run Claude in current mode"
         echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo -e ""
         echo -e "${BOLD}Examples:${RESET}"
-        echo -e "  cu /YON                    # Enable YOLO mode"
-        echo -e "  cu /YOFF                   # Enable SAFE mode"
+        echo -e "  cu /YON                    # Enable Unleashed mode"
+        echo -e "  cu /YOFF                   # Enable Safe mode"
         echo -e "  cu \"write a function\"      # Run Claude in current mode"
         echo -e ""
         echo -e "${BOLD}Mode Persistence:${RESET}"
@@ -94,7 +94,7 @@ case "$1" in
 
         # Show mode before launch
         if [ "$MODE" = "YOLO" ]; then
-            [ "$SILENT" -eq 0 ] && echo -e "${YELLOW}[YOLO]${RESET} Running Claude in YOLO mode..."
+            [ "$SILENT" -eq 0 ] && echo -e "${YELLOW}[Unleashed]${RESET} Running Claude in Unleashed mode..."
             # Get the directory of this script, resolving symlinks (needed for npm global installs)
             SOURCE="${BASH_SOURCE[0]}"
             while [ -L "$SOURCE" ]; do
@@ -107,7 +107,7 @@ case "$1" in
             # Run the local claude-unleashed.js
             node "$SCRIPT_DIR/claude-unleashed.js" "$@"
         else
-            [ "$SILENT" -eq 0 ] && echo -e "${CYAN}[SAFE]${RESET} Running Claude in SAFE mode..."
+            [ "$SILENT" -eq 0 ] && echo -e "${CYAN}[Safe]${RESET} Running Claude in Safe mode..."
             # Check if claude is installed
             if command -v claude &> /dev/null; then
                 claude "$@"
