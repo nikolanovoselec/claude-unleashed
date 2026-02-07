@@ -86,9 +86,15 @@ case "$1" in
         # Run Claude in current mode
         MODE=$(get_mode)
 
+        # Check if --silent flag is present
+        SILENT=0
+        for arg in "$@"; do
+            [ "$arg" = "--silent" ] && SILENT=1 && break
+        done
+
         # Show mode before launch
         if [ "$MODE" = "YOLO" ]; then
-            echo -e "${YELLOW}[YOLO]${RESET} Running Claude in YOLO mode..."
+            [ "$SILENT" -eq 0 ] && echo -e "${YELLOW}[YOLO]${RESET} Running Claude in YOLO mode..."
             # Get the directory of this script, resolving symlinks (needed for npm global installs)
             SOURCE="${BASH_SOURCE[0]}"
             while [ -L "$SOURCE" ]; do
@@ -101,7 +107,7 @@ case "$1" in
             # Run the local claude-unleashed.js
             node "$SCRIPT_DIR/claude-unleashed.js" "$@"
         else
-            echo -e "${CYAN}[SAFE]${RESET} Running Claude in SAFE mode..."
+            [ "$SILENT" -eq 0 ] && echo -e "${CYAN}[SAFE]${RESET} Running Claude in SAFE mode..."
             # Check if claude is installed
             if command -v claude &> /dev/null; then
                 claude "$@"
