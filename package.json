@@ -1,8 +1,9 @@
 {
-  "name": "claude-yolo",
-  "version": "1.9.2",
-  "description": "Claude CLI wrapper with YOLO mode (bypass safety) and SAFE mode support, auto-updates, and colorful loading messages",
+  "name": "claude-unleashed",
+  "version": "2.0.0",
+  "description": "Claude CLI wrapper with Unleashed mode (bypass safety) and Safe mode support, auto-updates, and CI/container support",
   "bin": {
+    "claude-unleashed": "./bin/claude-yolo.js",
     "claude-yolo": "./bin/claude-yolo.js",
     "cl": "./bin/cl"
   },
@@ -16,24 +17,26 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/maxparez/claude-yolo.git"
+    "url": "git+https://github.com/nikolanovoselec/claude-unleashed.git"
   },
   "keywords": [
     "claude",
     "cli",
     "anthropic",
     "wrapper",
+    "unleashed",
     "yolo",
     "safe-mode",
-    "permissions"
+    "permissions",
+    "autonomous"
   ],
-  "author": "eastlondoner (fork by maxparez)",
+  "author": "Nikola Novoselec (based on claude-yolo by eastlondoner)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/maxparez/claude-yolo/issues"
+    "url": "https://github.com/nikolanovoselec/claude-unleashed/issues"
   },
-  "homepage": "https://github.com/maxparez/claude-yolo#readme",
+  "homepage": "https://github.com/nikolanovoselec/claude-unleashed#readme",
   "engines": {
-    "node": ">=14.16"
+    "node": ">=18.0.0"
   }
 }
