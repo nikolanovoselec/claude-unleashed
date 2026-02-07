@@ -115,8 +115,6 @@ case "$1" in
                 # If regular claude is not installed, use claude-unleashed with --safe flag
                 if command -v claude-unleashed &> /dev/null; then
                     claude-unleashed --safe "$@"
-                elif command -v claude+ &> /dev/null; then
-                    claude+ --safe "$@"
                 else
                     echo -e "${RED}Error: Neither claude nor claude-unleashed is installed${RESET}"
                     echo -e "Install with: ${CYAN}npm install -g github:nikolanovoselec/claude-unleashed${RESET}"

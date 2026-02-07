@@ -83,7 +83,7 @@ describe('updater', () => {
     const { checkForUpdates } = await import('../lib/updater.js');
     await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true });
 
-    expect(execSync).toHaveBeenCalledWith('npm install', expect.anything());
+    expect(execSync).toHaveBeenCalledWith('npm install --no-update-notifier', expect.anything());
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 
@@ -97,7 +97,40 @@ describe('updater', () => {
     await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true, channel: 'stable' });
 
     expect(execSync).toHaveBeenCalledWith(
-      expect.stringContaining('--tag stable')
+      expect.stringContaining('--tag stable'),
+      expect.anything()
+    );
+  });
+
+  it('npm view pipes all stdio to suppress stderr leaks', async () => {
+    vi.mocked(execSync).mockReturnValue(Buffer.from('2.0.50\n'));
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true });
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining('npm view'),
+      expect.objectContaining({ stdio: ['pipe', 'pipe', 'pipe'] })
+    );
+  });
+
+  it('npm install includes --no-update-notifier flag', async () => {
+    vi.mocked(execSync).mockReturnValue(Buffer.from('2.0.99\n'));
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.renameSync).mockImplementation(() => {});
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true });
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining('npm install --no-update-notifier'),
+      expect.anything()
     );
   });
 
@@ -111,7 +144,51 @@ describe('updater', () => {
     await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true });
 
     expect(execSync).toHaveBeenCalledWith(
-      expect.stringContaining('--tag latest')
+      expect.stringContaining('--tag latest'),
+      expect.anything()
     );
+  });
+
+  it('installs pinned version when pinnedVersion is set', async () => {
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.renameSync).mockImplementation(() => {});
+    vi.mocked(execSync).mockReturnValue(Buffer.from(''));
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true, pinnedVersion: '2.1.25' });
+
+    // Should write the pinned version to package.json
+    const writeCall = vi.mocked(fs.writeFileSync).mock.calls[0];
+    const written = JSON.parse(writeCall[1]);
+    expect(written.dependencies['@anthropic-ai/claude-code']).toBe('2.1.25');
+  });
+
+  it('skips npm view when pinnedVersion is set', async () => {
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.renameSync).mockImplementation(() => {});
+    vi.mocked(execSync).mockReturnValue(Buffer.from(''));
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true, pinnedVersion: '2.1.25' });
+
+    // execSync should NOT have been called with npm view
+    const execCalls = vi.mocked(execSync).mock.calls.map(c => c[0]);
+    expect(execCalls.some(c => c.includes('npm view'))).toBe(false);
+  });
+
+  it('rejects invalid pinned version format', async () => {
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await expect(checkForUpdates({
+      packageJsonPath: '/fake/package.json',
+      nodeModulesDir: '/fake',
+      silent: true,
+      pinnedVersion: 'not-a-version'
+    })).rejects.toThrow(/Invalid pinned version/);
   });
 });

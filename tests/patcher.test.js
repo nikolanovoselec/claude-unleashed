@@ -26,7 +26,7 @@ describe('patcher', () => {
     vi.mocked(fs.renameSync).mockImplementation(() => {});
 
     const { applyPatches } = await import('../lib/patcher.js');
-    const result = applyPatches({ originalCliPath: '/fake/cli.js', yoloCliPath: '/fake/cli-yolo.js' });
+    const result = applyPatches({ originalCliPath: '/fake/cli.js', patchedCliPath: '/fake/cli-patched.js' });
 
     expect(result.skippedViaCache).toBe(false);
     const okPatches = result.results.filter(r => r.status === 'OK');
@@ -42,7 +42,7 @@ describe('patcher', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     const { applyPatches } = await import('../lib/patcher.js');
-    const result = applyPatches({ originalCliPath: '/fake/cli.js', yoloCliPath: '/fake/cli-yolo.js' });
+    const result = applyPatches({ originalCliPath: '/fake/cli.js', patchedCliPath: '/fake/cli-patched.js' });
     expect(result.skippedViaCache).toBe(true);
   });
 
@@ -54,7 +54,7 @@ describe('patcher', () => {
     vi.mocked(fs.renameSync).mockImplementation(() => {});
 
     const { applyPatches } = await import('../lib/patcher.js');
-    applyPatches({ originalCliPath: '/fake/cli.js', yoloCliPath: '/fake/cli-yolo.js' });
+    applyPatches({ originalCliPath: '/fake/cli.js', patchedCliPath: '/fake/cli-patched.js' });
 
     expect(writtenPaths.some(p => p.endsWith('.tmp'))).toBe(true);
     expect(fs.renameSync).toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('patcher', () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
 
     const { applyPatches } = await import('../lib/patcher.js');
-    expect(() => applyPatches({ originalCliPath: '/fake/cli.js', yoloCliPath: '/fake/cli-yolo.js' }))
+    expect(() => applyPatches({ originalCliPath: '/fake/cli.js', patchedCliPath: '/fake/cli-patched.js' }))
       .toThrow(/Required patch/);
   });
 
@@ -78,7 +78,7 @@ describe('patcher', () => {
     vi.mocked(fs.renameSync).mockImplementation(() => {});
 
     const { applyPatches } = await import('../lib/patcher.js');
-    const result = applyPatches({ originalCliPath: '/fake/cli.js', yoloCliPath: '/fake/cli-yolo.js' });
+    const result = applyPatches({ originalCliPath: '/fake/cli.js', patchedCliPath: '/fake/cli-patched.js' });
     const skipped = result.results.filter(r => r.status === 'SKIPPED');
     expect(skipped.length).toBeGreaterThan(0);
   });

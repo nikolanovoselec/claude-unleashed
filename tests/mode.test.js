@@ -28,4 +28,9 @@ describe('mode', () => {
     setMode('SAFE');
     expect(fs.writeFileSync).toHaveBeenCalledWith(expect.stringContaining('.claude_yolo_state'), 'SAFE');
   });
+
+  it('setMode rejects invalid mode', async () => {
+    const { setMode } = await import('../lib/mode.js');
+    expect(() => setMode('BANANA')).toThrow('Invalid mode: BANANA. Must be one of: YOLO, SAFE');
+  });
 });

@@ -7,7 +7,7 @@
     "cu": "./bin/cu"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "latest",
+    "@anthropic-ai/claude-code": "2.1.37",
     "punycode": "2.3.1"
   },
   "type": "module",

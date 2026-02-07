@@ -1,7 +1,7 @@
-import { RED, YELLOW, CYAN, GREEN, MAGENTA, RESET, BOLD } from '../lib/colors.js';
+import { RED, YELLOW, CYAN, GREEN, RESET, BOLD } from '../lib/colors.js';
 
 describe('colors', () => {
-  const exports = { RED, YELLOW, CYAN, GREEN, MAGENTA, RESET, BOLD };
+  const exports = { RED, YELLOW, CYAN, GREEN, RESET, BOLD };
 
   for (const [name, value] of Object.entries(exports)) {
     it(`exports ${name} as an ANSI escape string`, () => {

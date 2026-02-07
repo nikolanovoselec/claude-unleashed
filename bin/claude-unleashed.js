@@ -6,23 +6,26 @@ import { getMode, setMode } from '../lib/mode.js';
 import { askForConsent } from '../lib/consent.js';
 import { resolveCliPaths } from '../lib/cli-resolver.js';
 import { checkForUpdates } from '../lib/updater.js';
-import { parseArgs, prepareYoloArgv, prepareSafeArgv } from '../lib/argv.js';
+import { parseArgs, prepareUnleashedArgv, prepareSafeArgv } from '../lib/argv.js';
 import { applyPatches } from '../lib/patcher.js';
 import { handleError } from '../lib/errors.js';
 import debug from '../lib/debug.js';
 
-const { isSilent, skipConsent, safeMode: safeModeFlag, noUpdate, channel } = parseArgs();
-const { originalCliPath, yoloCliPath, nodeModulesDir, packageJsonPath, consentFlagPath } = resolveCliPaths();
+const { isSilent, skipConsent, safeMode: safeModeFlag, noUpdate, channel, pinnedVersion, disableInstallChecks } = parseArgs();
+const { originalCliPath, patchedCliPath, nodeModulesDir, packageJsonPath, consentFlagPath } = resolveCliPaths();
 
 const maybeUpdate = async () => {
   if (noUpdate) {
     debug("Updates disabled via --no-update or CLAUDE_UNLEASHED_NO_UPDATE");
     return;
   }
-  try { await checkForUpdates({ packageJsonPath, nodeModulesDir, silent: isSilent, channel }); } catch { /* recoverable — already logged to stderr */ }
+  try { await checkForUpdates({ packageJsonPath, nodeModulesDir, silent: isSilent, channel, pinnedVersion }); } catch (err) { debug(`Update check failed: ${err.message}`); }
 };
 
 async function run() {
+  // Suppress upstream CLI's npm deprecation warning and internal auto-updater
+  process.env.DISABLE_INSTALLATION_CHECKS = '1';
+
   // Handle mode commands
   const args = process.argv.slice(2);
   if (args[0] === 'mode') {
@@ -59,15 +62,15 @@ async function run() {
 
   // Unleashed mode
   if (!isSilent) console.log(`${YELLOW}[Unleashed] Running Claude in Unleashed mode${RESET}`);
-  prepareYoloArgv();
+  prepareUnleashedArgv();
 
   await maybeUpdate();
 
   // Handle consent
-  const consentNeeded = !fs.existsSync(yoloCliPath) || !fs.existsSync(consentFlagPath);
+  const consentNeeded = !fs.existsSync(patchedCliPath) || !fs.existsSync(consentFlagPath);
   if (consentNeeded) {
     if (skipConsent) {
-      debug("Consent skipped via CLAUDE_YOLO_SKIP_CONSENT or --no-consent");
+      debug("Consent skipped via CLAUDE_UNLEASHED_SKIP_CONSENT / CLAUDE_YOLO_SKIP_CONSENT or --no-consent");
       try { fs.writeFileSync(consentFlagPath, 'consent-given'); } catch (err) { debug(`Error creating consent flag: ${err.message}`); }
     } else {
       const consent = await askForConsent();
@@ -77,17 +80,15 @@ async function run() {
   }
 
   // Apply declarative patch system
-  applyPatches({ originalCliPath, yoloCliPath });
+  applyPatches({ originalCliPath, patchedCliPath });
 
   if (!isSilent) console.log(`${YELLOW}Unleashed mode activated${RESET}`);
 
-  await import(yoloCliPath);
+  await import(patchedCliPath);
 }
 
 run().catch(err => {
   handleError(err);
-  if (!(err instanceof Error && err.name === 'FatalError')) {
-    console.error("Error:", err);
-    process.exit(1);
-  }
+  console.error("Error:", err);
+  process.exit(1);
 });
