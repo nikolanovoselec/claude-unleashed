@@ -6,20 +6,20 @@ A wrapper for the Claude CLI that runs in **Unleashed mode** (bypassing all safe
 
 ## Security Warning
 
-**Unleashed mode bypasses important safety checks.** This completely bypasses the "human in the loop" checks — it could delete your data, leak your secrets, and even brick your computer. Use at your own risk.
+**Unleashed mode bypasses important safety checks.** This completely bypasses the "human in the loop" checks -- it could delete your data, leak your secrets, and even brick your computer. Use at your own risk.
 
 ## Why Would You Need This?
 
-Because Anthropic's Claude CLI has opinions about where it should run — and your infrastructure doesn't care about its feelings.
+Because Anthropic's Claude CLI has opinions about where it should run -- and your infrastructure doesn't care about its feelings.
 
-Here's the thing: `claude --dangerously-skip-permissions` sounds like it should let you do anything. The name literally has "dangerously" in it. You'd think that's as far as the guardrails go. But try running it as root in a container and you'll get a polite refusal. Claude CLI checks `process.getuid()`, sees you're root, and says *"nah, I don't think so"* — even with the dangerous flag. Even inside a Docker container. Even when you really, truly mean it.
+Here's the thing: `claude --dangerously-skip-permissions` sounds like it should let you do anything. The name literally has "dangerously" in it. You'd think that's as far as the guardrails go. But try running it as root in a container and you'll get a polite refusal. Claude CLI checks `process.getuid()`, sees you're root, and says *"nah, I don't think so"* -- even with the dangerous flag. Even inside a Docker container. Even when you really, truly mean it.
 
 This is a real problem if you're running Claude in environments where **root is not optional**:
 
-- **Cloudflare Containers** — They run as root. Period. No `USER 1000` trick, no `gosu`, no workaround. This is exactly why [claudeflare](https://github.com/nikolanovoselec/claudeflare) (Claude Code in your browser via Cloudflare Containers) needs this wrapper — without it, Claude simply refuses to start.
-- **CI/CD pipelines** — Many CI runners (GitHub Actions, GitLab CI, Jenkins agents) execute as root inside their containers. Adding `--dangerously-skip-permissions` gets you past the permission prompts, but the root check is a separate wall.
-- **Minimal Docker images** — Some base images don't have `useradd`. You're root or you're nothing.
-- **Development containers** — VS Code devcontainers, Codespaces, Gitpod — some of these run as root by default, and reconfiguring them just to appease a CLI tool is... not how you want to spend your afternoon.
+- **Cloudflare Containers** -- They run as root. Period. No `USER 1000` trick, no `gosu`, no workaround. This is exactly why [claudeflare](https://github.com/nikolanovoselec/claudeflare) (Claude Code in your browser via Cloudflare Containers) needs this wrapper -- without it, Claude simply refuses to start.
+- **CI/CD pipelines** -- Many CI runners (GitHub Actions, GitLab CI, Jenkins agents) execute as root inside their containers. Adding `--dangerously-skip-permissions` gets you past the permission prompts, but the root check is a separate wall.
+- **Minimal Docker images** -- Some base images don't have `useradd`. You're root or you're nothing.
+- **Development containers** -- VS Code devcontainers, Codespaces, Gitpod -- some of these run as root by default, and reconfiguring them just to appease a CLI tool is... not how you want to spend your afternoon.
 
 The Claude CLI's root check exists for good reason on bare-metal machines. But in an ephemeral container that gets destroyed after every run? The root check is protecting a filesystem that won't exist in 30 seconds. Claude Unleashed understands the difference.
 
@@ -36,51 +36,67 @@ git clone https://github.com/nikolanovoselec/claude-unleashed.git
 cd claude-unleashed && npm link
 ```
 
-The first time you run `claude-unleashed`, you'll see a consent prompt explaining the security implications. You must explicitly agree to continue.
+This installs three binaries: `claude+` (primary), `claude-unleashed`, and `cu` (short alias).
+
+The first time you run it, you'll see a consent prompt explaining the security implications. You must explicitly agree to continue. Consent is stored at `~/.claude_unleashed_consent` and persists across npm reinstalls.
 
 ## Usage
+
+### Binaries
+
+| Binary | Description |
+|--------|-------------|
+| `claude+` | Primary command |
+| `claude-unleashed` | Full name alias |
+| `cu` | Short alias with mode switching |
 
 ### Command-line flags
 
 ```bash
-# Run in Unleashed mode (default)
+# Run in Unleashed mode (default) -- any of these work:
+claude+
 claude-unleashed
+cu
 
 # Run in Safe mode (normal Claude CLI behavior)
-claude-unleashed --safe
-claude-unleashed --no-yolo
+claude+ --safe
+claude+ --no-yolo
 
 # Switch modes persistently
-claude-unleashed mode yolo
-claude-unleashed mode safe
+claude+ mode yolo
+claude+ mode safe
 
 # Check current mode
-claude-unleashed mode
+claude+ mode
+
+# Disable auto-updates (useful for locked-down environments)
+claude+ --no-update
 ```
 
-### The `cl` wrapper script
+### The `cu` wrapper script
 
 For quick mode switching:
 
 ```bash
-cl /YON      # Switch to Unleashed mode and start Claude
-cl /YOFF     # Switch to Safe mode and start Claude
-cl /STATUS   # Show current mode
-cl /HELP     # Show help
+cu /YON      # Switch to Unleashed mode and start Claude
+cu /YOFF     # Switch to Safe mode and start Claude
+cu /STATUS   # Show current mode
+cu /HELP     # Show help
 
-cl "write a hello world function"       # Run in current mode
+cu "write a hello world function"       # Run in current mode
 ```
 
 Mode preference is saved in `~/.claude_yolo_state` and persists between sessions.
 
 ## Features
 
-- **Dual mode** — Unleashed (bypass all checks) or Safe (standard Claude CLI)
-- **Auto-update** — Checks for the latest `@anthropic-ai/claude-code` on every run
-- **Root support** — Works even as root user (YOLO mode bypasses the root check)
-- **Non-destructive** — Creates a modified copy of the CLI; your `claude` command is untouched
-- **Mode persistence** — Your choice is saved between sessions
-- **CI/Container support** — Silent and non-interactive modes for automation
+- **Dual mode** -- Unleashed (bypass all checks) or Safe (standard Claude CLI)
+- **Auto-update** -- Checks for the latest `@anthropic-ai/claude-code` on every run (disable with `--no-update`)
+- **Root support** -- Works even as root user (source-level patching bypasses the root check)
+- **Non-destructive** -- Creates a modified copy of the CLI; your `claude` command is untouched
+- **Mode persistence** -- Your choice is saved between sessions
+- **CI/Container support** -- Silent and non-interactive modes for automation
+- **Declarative patch system** -- Each modification is a self-contained patch with validation
 
 ## Environment Variables for CI / Container Use
 
@@ -90,19 +106,20 @@ When running in non-interactive environments (Docker, CI, automated scripts):
 |----------|----------|--------|
 | `CLAUDE_YOLO_SILENT=1` | `--silent` | Suppress all startup banners and npm update output |
 | `CLAUDE_YOLO_SKIP_CONSENT=1` | `--no-consent` | Skip interactive consent prompt and auto-accept |
-| `DEBUG=1` | — | Show debug output |
+| `CLAUDE_UNLEASHED_NO_UPDATE=1` | `--no-update` | Disable auto-update checks entirely |
+| `DEBUG=1` | -- | Show debug output including full patch report |
 
 All flags and environment variables can be freely combined:
 
 ```bash
 # Fully non-interactive, no output noise
-claude-unleashed --silent --no-consent
+claude+ --silent --no-consent
 
 # Same with env vars (better for Dockerfiles and CI)
-CLAUDE_YOLO_SILENT=1 CLAUDE_YOLO_SKIP_CONSENT=1 claude-unleashed
+CLAUDE_YOLO_SILENT=1 CLAUDE_YOLO_SKIP_CONSENT=1 claude+
 
-# Mix and match
-CLAUDE_YOLO_SILENT=1 claude-unleashed --no-consent
+# Locked-down: silent, no consent prompt, no update checks
+CLAUDE_YOLO_SILENT=1 CLAUDE_YOLO_SKIP_CONSENT=1 CLAUDE_UNLEASHED_NO_UPDATE=1 claude+
 ```
 
 ### Dockerfile example
@@ -110,29 +127,64 @@ CLAUDE_YOLO_SILENT=1 claude-unleashed --no-consent
 ```dockerfile
 ENV CLAUDE_YOLO_SILENT=1
 ENV CLAUDE_YOLO_SKIP_CONSENT=1
+ENV CLAUDE_UNLEASHED_NO_UPDATE=1
 RUN npm install -g github:nikolanovoselec/claude-unleashed
 ```
 
+### Consent bypass note
+
+`CLAUDE_YOLO_SKIP_CONSENT=1` is designed for CI/container environments where interactive prompts are impossible. It auto-accepts the consent on your behalf. Only use this when you have already reviewed and accepted the security implications.
+
 ## How It Works
 
-In Unleashed mode, the wrapper:
-1. Checks for and installs updates to the Claude package
-2. Creates a modified copy of the Claude CLI code:
-   - Replaces `getIsDocker()` calls with `true`
-   - Replaces `hasInternetAccess()` calls with `false`
-   - Bypasses root user checks (`process.getuid() === 0`)
-   - Auto-accepts plan mode confirmations
-   - Adds themed loading messages
-3. Adds `--dangerously-skip-permissions` to the command line
-4. Imports the modified copy (original CLI is untouched)
+### Architecture
+
+```
+bin/claude-unleashed.js     Thin orchestrator (~90 lines)
+bin/cu                      Bash wrapper with mode switching
+lib/
+  argv.js                   Centralized argument parsing
+  cli-resolver.js           Finds Claude CLI installation
+  colors.js                 ANSI color constants
+  consent.js                Interactive consent prompt
+  constants.js              Shared configuration values
+  debug.js                  Conditional debug logging
+  errors.js                 FatalError / RecoverableError classes
+  mode.js                   Mode persistence (YOLO/SAFE)
+  patcher.js                Patch orchestrator with hash caching
+  updater.js                Auto-update with atomic writes
+  patches/
+    patch-base.js           Patch base class (canApply/apply/verify)
+    index.js                Ordered patch registry
+    is-docker.patch.js      [required] getIsDocker() -> true
+    internet-access.patch.js [required] hasInternetAccess() -> false
+    root-check.patch.js     [required] getuid/geteuid === 0 -> false
+    punycode.patch.js       [optional] Fix Node.js punycode deprecation
+    plan-autoaccept.patch.js [optional] Auto-accept plan mode
+    loading-messages.patch.js [optional] YOLO-themed loading messages
+```
+
+### Patch system
+
+In Unleashed mode, the wrapper applies a series of source-level patches to the Claude CLI:
+
+1. Reads the original CLI source file
+2. Applies each patch from the registry in order
+3. Each patch has a `canApply` pre-flight check and a `verify` post-check
+4. Required patches (is-docker, internet-access, root-check) must succeed or the tool aborts with a clear error
+5. Optional patches (punycode, plan-autoaccept, loading-messages) gracefully skip if the target pattern is missing
+6. The patched file is written atomically (write to .tmp, rename) and cached by source hash
+7. On subsequent runs, if the upstream source hasn't changed, patching is skipped entirely
 
 In Safe mode, it runs the original Claude CLI without modifications.
 
 ## Debugging
 
 ```bash
-DEBUG=1 claude-unleashed
+DEBUG=1 claude+
 ```
+
+This shows the full patch report with status for each patch (OK / SKIP / FAIL).
 
 ## Acknowledgments
 

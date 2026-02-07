@@ -3,18 +3,15 @@
   "version": "2.0.0",
   "description": "Claude CLI wrapper with Unleashed mode (bypass safety) and Safe mode support, auto-updates, and CI/container support",
   "bin": {
-    "claude-unleashed": "./bin/claude-yolo.js",
-    "claude-yolo": "./bin/claude-yolo.js",
-    "cl": "./bin/cl"
+    "claude+": "./bin/claude-unleashed.js",
+    "claude-unleashed": "./bin/claude-unleashed.js",
+    "cu": "./bin/cu"
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "2.0.76",
     "punycode": "2.3.1"
   },
   "type": "module",
-  "scripts": {
-    "postinstall": "chmod +x ./bin/cl"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nikolanovoselec/claude-unleashed.git"
@@ -36,7 +33,14 @@
     "url": "https://github.com/nikolanovoselec/claude-unleashed/issues"
   },
   "homepage": "https://github.com/nikolanovoselec/claude-unleashed#readme",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
   }
 }
