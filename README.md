@@ -107,6 +107,7 @@ When running in non-interactive environments (Docker, CI, automated scripts):
 | `CLAUDE_YOLO_SILENT=1` | `--silent` | Suppress all startup banners and npm update output |
 | `CLAUDE_YOLO_SKIP_CONSENT=1` | `--no-consent` | Skip interactive consent prompt and auto-accept |
 | `CLAUDE_UNLEASHED_NO_UPDATE=1` | `--no-update` | Disable auto-update checks entirely |
+| `CLAUDE_UNLEASHED_CHANNEL` | `--stable` | Update channel: `latest` (default) or `stable` |
 | `DEBUG=1` | -- | Show debug output including full patch report |
 
 All flags and environment variables can be freely combined:
@@ -134,6 +135,25 @@ RUN npm install -g github:nikolanovoselec/claude-unleashed
 ### Consent bypass note
 
 `CLAUDE_YOLO_SKIP_CONSENT=1` is designed for CI/container environments where interactive prompts are impossible. It auto-accepts the consent on your behalf. Only use this when you have already reviewed and accepted the security implications.
+
+## Configuration
+
+### Update channels
+
+By default, `claude-unleashed` tracks the `latest` npm dist-tag of `@anthropic-ai/claude-code`. To pin to the `stable` channel (tested releases), use any of these methods (in priority order):
+
+```bash
+# 1. CLI flag (one-time)
+claude+ --stable
+
+# 2. Environment variable
+export CLAUDE_UNLEASHED_CHANNEL=stable
+
+# 3. Config file (persistent)
+echo "channel=stable" > ~/.claude_unleashed_config
+```
+
+When no option is set, the default is `latest`.
 
 ## How It Works
 
@@ -175,6 +195,8 @@ In Unleashed mode, the wrapper applies a series of source-level patches to the C
 5. Optional patches (punycode, plan-autoaccept, loading-messages) gracefully skip if the target pattern is missing
 6. The patched file is written atomically (write to .tmp, rename) and cached by source hash
 7. On subsequent runs, if the upstream source hasn't changed, patching is skipped entirely
+
+The `is-docker` and `internet-access` patches support both old call-site patterns (e.g., `x.getIsDocker()`) and new property-assignment patterns (e.g., `getIsDocker:jG9`) to handle upstream minification changes across Claude CLI versions.
 
 In Safe mode, it runs the original Claude CLI without modifications.
 

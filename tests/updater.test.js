@@ -86,4 +86,32 @@ describe('updater', () => {
     expect(execSync).toHaveBeenCalledWith('npm install', expect.anything());
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
+
+  it('uses --tag stable when channel is stable', async () => {
+    vi.mocked(execSync).mockReturnValue(Buffer.from('2.0.50\n'));
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true, channel: 'stable' });
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining('--tag stable')
+    );
+  });
+
+  it('uses --tag latest when channel is not specified', async () => {
+    vi.mocked(execSync).mockReturnValue(Buffer.from('2.0.50\n'));
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({
+      dependencies: { '@anthropic-ai/claude-code': '2.0.50' }
+    }));
+
+    const { checkForUpdates } = await import('../lib/updater.js');
+    await checkForUpdates({ packageJsonPath: '/fake/package.json', nodeModulesDir: '/fake', silent: true });
+
+    expect(execSync).toHaveBeenCalledWith(
+      expect.stringContaining('--tag latest')
+    );
+  });
 });

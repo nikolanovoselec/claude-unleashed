@@ -11,7 +11,7 @@ import { applyPatches } from '../lib/patcher.js';
 import { handleError } from '../lib/errors.js';
 import debug from '../lib/debug.js';
 
-const { isSilent, skipConsent, safeMode: safeModeFlag, noUpdate } = parseArgs();
+const { isSilent, skipConsent, safeMode: safeModeFlag, noUpdate, channel } = parseArgs();
 const { originalCliPath, yoloCliPath, nodeModulesDir, packageJsonPath, consentFlagPath } = resolveCliPaths();
 
 const maybeUpdate = async () => {
@@ -19,7 +19,7 @@ const maybeUpdate = async () => {
     debug("Updates disabled via --no-update or CLAUDE_UNLEASHED_NO_UPDATE");
     return;
   }
-  try { await checkForUpdates({ packageJsonPath, nodeModulesDir, silent: isSilent }); } catch { /* recoverable — already logged to stderr */ }
+  try { await checkForUpdates({ packageJsonPath, nodeModulesDir, silent: isSilent, channel }); } catch { /* recoverable — already logged to stderr */ }
 };
 
 async function run() {

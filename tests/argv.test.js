@@ -58,6 +58,23 @@ describe('argv', () => {
       process.env.CLAUDE_UNLEASHED_NO_UPDATE = '1';
       expect(parseArgs().noUpdate).toBe(true);
     });
+
+    it('detects --stable flag and sets channel to stable', () => {
+      process.argv = ['node', 'script', '--stable'];
+      expect(parseArgs().channel).toBe('stable');
+    });
+
+    it('detects CLAUDE_UNLEASHED_CHANNEL env var', () => {
+      process.argv = ['node', 'script'];
+      process.env.CLAUDE_UNLEASHED_CHANNEL = 'stable';
+      expect(parseArgs().channel).toBe('stable');
+    });
+
+    it('defaults channel to latest when nothing is set', () => {
+      process.argv = ['node', 'script'];
+      delete process.env.CLAUDE_UNLEASHED_CHANNEL;
+      expect(parseArgs().channel).toBe('latest');
+    });
   });
 
   describe('prepareYoloArgv', () => {
@@ -68,13 +85,14 @@ describe('argv', () => {
     });
 
     it('strips custom flags', () => {
-      process.argv = ['node', 'script', '--silent', '--safe', '--no-yolo', '--no-consent', '--no-update'];
+      process.argv = ['node', 'script', '--silent', '--safe', '--no-yolo', '--no-consent', '--no-update', '--stable'];
       prepareYoloArgv();
       expect(process.argv).not.toContain('--silent');
       expect(process.argv).not.toContain('--safe');
       expect(process.argv).not.toContain('--no-yolo');
       expect(process.argv).not.toContain('--no-consent');
       expect(process.argv).not.toContain('--no-update');
+      expect(process.argv).not.toContain('--stable');
     });
 
     it('does not duplicate --dangerously-skip-permissions', () => {
@@ -92,6 +110,12 @@ describe('argv', () => {
       expect(process.argv).not.toContain('--silent');
       expect(process.argv).not.toContain('--safe');
       expect(process.argv).not.toContain('--dangerously-skip-permissions');
+    });
+
+    it('strips --stable flag', () => {
+      process.argv = ['node', 'script', '--stable'];
+      prepareSafeArgv();
+      expect(process.argv).not.toContain('--stable');
     });
   });
 });
