@@ -104,7 +104,7 @@ Mode preference is saved in `~/.claude_yolo_state` and persists between sessions
 - **Mode persistence** -- Your choice is saved between sessions
 - **CI/Container support** -- Silent and non-interactive modes for automation
 - **Declarative patch system** -- Each modification is a self-contained patch with validation
-- **Version pinning** -- Bundles `@anthropic-ai/claude-code` version 2.1.37 by default, auto-updates at runtime
+- **Version pinning** -- Ships with `@anthropic-ai/claude-code` stable (2.1.25), auto-updates to latest on first run
 
 ## Environment Variables for CI / Container Use
 
@@ -172,7 +172,7 @@ When no option is set, the default is `latest`.
 
 ### Version pinning
 
-The upstream CLI version is pinned in `package.json` to version `2.1.37`. The auto-updater will check for newer versions and update this automatically unless you explicitly pin:
+The upstream CLI ships with the stable version (currently `2.1.25`). On first run, the auto-updater will upgrade to the latest version automatically. To prevent this and stay on a specific version:
 
 ```bash
 # Pin to a specific version
