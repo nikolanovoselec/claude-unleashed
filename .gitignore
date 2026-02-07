@@ -1,0 +1,16 @@
+node_modules/
+*.log
+*.pid
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.cursor/
+.specstory/
+.mcp.json
+.claude/
+test.txt
+demo.txt
+yolo-test.txt
