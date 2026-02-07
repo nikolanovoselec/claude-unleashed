@@ -73,8 +73,11 @@ claude-unleashed --no-update
 # Pin to a specific upstream version
 claude-unleashed --pin-version=2.1.25
 
-# Suppress upstream CLI installation checks
+# Suppress upstream CLI installation checks (set automatically by default)
 claude-unleashed --disable-installation-checks
+
+# Suppress all startup output
+claude-unleashed --silent
 ```
 
 ### The `cu` wrapper script
@@ -101,6 +104,7 @@ Mode preference is saved in `~/.claude_yolo_state` and persists between sessions
 - **Mode persistence** -- Your choice is saved between sessions
 - **CI/Container support** -- Silent and non-interactive modes for automation
 - **Declarative patch system** -- Each modification is a self-contained patch with validation
+- **Version pinning** -- Bundles `@anthropic-ai/claude-code` version 2.1.37 by default, auto-updates at runtime
 
 ## Environment Variables for CI / Container Use
 
@@ -166,12 +170,23 @@ echo "channel=stable" > ~/.claude_unleashed_config
 
 When no option is set, the default is `latest`.
 
+### Version pinning
+
+The upstream CLI version is pinned in `package.json` to version `2.1.37`. The auto-updater will check for newer versions and update this automatically unless you explicitly pin:
+
+```bash
+# Pin to a specific version
+export CLAUDE_UNLEASHED_VERSION=2.1.25
+# or
+claude-unleashed --pin-version=2.1.25
+```
+
 ## How It Works
 
 ### Architecture
 
 ```
-bin/claude-unleashed.js     Thin orchestrator (~90 lines)
+bin/claude-unleashed.js     Thin orchestrator (~95 lines)
 bin/cu                      Bash wrapper with mode switching
 lib/
   argv.js                   Centralized argument parsing
@@ -210,6 +225,10 @@ In Unleashed mode, the wrapper applies a series of source-level patches to the C
 The `is-docker` and `internet-access` patches support both old call-site patterns (e.g., `x.getIsDocker()`) and new property-assignment patterns (e.g., `getIsDocker:jG9`) to handle upstream minification changes across Claude CLI versions.
 
 In Safe mode, it runs the original Claude CLI without modifications.
+
+### DISABLE_INSTALLATION_CHECKS
+
+This environment variable is **always** set to `'1'` automatically by the orchestrator before importing the upstream CLI. This suppresses the upstream CLI's own deprecation warnings and competing auto-updater, which would otherwise interfere with claude-unleashed's update system.
 
 ## Debugging
 
