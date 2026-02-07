@@ -3,7 +3,6 @@
   "version": "2.0.0",
   "description": "Claude CLI wrapper with Unleashed mode (bypass safety) and Safe mode support, auto-updates, and CI/container support",
   "bin": {
-    "claude+": "./bin/claude-unleashed.js",
     "claude-unleashed": "./bin/claude-unleashed.js",
     "cu": "./bin/cu"
   },
