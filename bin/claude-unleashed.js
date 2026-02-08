@@ -25,6 +25,7 @@ const maybeUpdate = async () => {
 async function run() {
   // Suppress upstream CLI's npm deprecation warning and internal auto-updater
   process.env.DISABLE_INSTALLATION_CHECKS = '1';
+  process.env.DISABLE_AUTOUPDATER = '1';
 
   // Handle mode commands
   const args = process.argv.slice(2);

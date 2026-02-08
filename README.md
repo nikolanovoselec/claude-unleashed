@@ -117,7 +117,7 @@ When running in non-interactive environments (Docker, CI, automated scripts):
 | `CLAUDE_UNLEASHED_NO_UPDATE=1` | `--no-update` | Disable auto-update checks entirely |
 | `CLAUDE_UNLEASHED_CHANNEL` | `--stable` | Update channel: `latest` (default) or `stable` |
 | `CLAUDE_UNLEASHED_VERSION` | `--pin-version=X.Y.Z` | Pin to a specific upstream CLI version |
-| `DISABLE_INSTALLATION_CHECKS=1` | `--disable-installation-checks` | Suppress upstream CLI deprecation warning (always set internally) |
+| `DISABLE_INSTALLATION_CHECKS=1` | `--disable-installation-checks` | Suppress upstream CLI deprecation warning and internal auto-updater (always set internally) |
 | `DEBUG=1` | -- | Show debug output including full patch report |
 
 > **Legacy env vars:** `CLAUDE_YOLO_SILENT` and `CLAUDE_YOLO_SKIP_CONSENT` still work for backwards compatibility.
@@ -228,7 +228,7 @@ In Safe mode, it runs the original Claude CLI without modifications.
 
 ### DISABLE_INSTALLATION_CHECKS
 
-This environment variable is **always** set to `'1'` automatically by the orchestrator before importing the upstream CLI. This suppresses the upstream CLI's own deprecation warnings and competing auto-updater, which would otherwise interfere with claude-unleashed's update system.
+This environment variable is **always** set to `'1'` automatically by the orchestrator before importing the upstream CLI. This suppresses the upstream CLI's own deprecation warnings. Additionally, `DISABLE_AUTOUPDATER=1` is set to disable the CLI's internal background auto-updater (which checks for native builds and causes "Auto-update failed" errors in containerized environments). Together, these prevent the upstream CLI from interfering with claude-unleashed's own update system.
 
 ## Debugging
 
