@@ -16,7 +16,7 @@ Here's the thing: `claude --dangerously-skip-permissions` sounds like it should 
 
 This is a real problem if you're running Claude in environments where **root is not optional**:
 
-- **Cloudflare Containers** -- They run as root. Period. No `USER 1000` trick, no `gosu`, no workaround. This is exactly why [claudeflare](https://github.com/nikolanovoselec/claudeflare) (Claude Code in your browser via Cloudflare Containers) needs this wrapper -- without it, Claude simply refuses to start.
+- **Cloudflare Containers** -- They run as root. Period. No `USER 1000` trick, no `gosu`, no workaround. This is exactly why [codeflare](https://github.com/nikolanovoselec/codeflare) (Claude Code in your browser via Cloudflare Containers) needs this wrapper -- without it, Claude simply refuses to start.
 - **CI/CD pipelines** -- Many CI runners (GitHub Actions, GitLab CI, Jenkins agents) execute as root inside their containers. Adding `--dangerously-skip-permissions` gets you past the permission prompts, but the root check is a separate wall.
 - **Minimal Docker images** -- Some base images don't have `useradd`. You're root or you're nothing.
 - **Development containers** -- VS Code devcontainers, Codespaces, Gitpod -- some of these run as root by default, and reconfiguring them just to appease a CLI tool is... not how you want to spend your afternoon.
@@ -98,7 +98,7 @@ Mode preference is saved in `~/.claude_yolo_state` and persists between sessions
 ## Features
 
 - **Dual mode** -- Unleashed (bypass all checks) or Safe (standard Claude CLI)
-- **Auto-update** -- Checks for the latest `@anthropic-ai/claude-code` on every run (disable with `--no-update`)
+- **Auto-update** -- Checks for the latest `@anthropic-ai/claude-code` on every run; skips `npm install` when the installed version already matches (disable with `--no-update`)
 - **Root support** -- Works even as root user (source-level patching bypasses the root check)
 - **Non-destructive** -- Creates a modified copy of the CLI; your `claude` command is untouched
 - **Mode persistence** -- Your choice is saved between sessions
