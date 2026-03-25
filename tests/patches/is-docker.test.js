@@ -29,6 +29,28 @@ describe('is-docker patch', () => {
     expect(result).toBe('{getIsDocker:()=>true,other:x}');
   });
 
+  // Robustness: $-prefixed minified identifiers
+  it('handles $-prefixed identifiers in property values', () => {
+    const result = patch.apply('{getIsDocker:$xuK,other:y}');
+    expect(result).toBe('{getIsDocker:()=>true,other:y}');
+  });
+
+  it('handles $-prefixed identifiers in call receivers', () => {
+    expect(patch.apply('if($env.getIsDocker()){}')).toBe('if(true){}');
+  });
+
+  // Robustness: arrow function values
+  it('handles arrow function property values', () => {
+    const result = patch.apply('{getIsDocker:()=>detectDocker(),other:x}');
+    expect(result).toBe('{getIsDocker:()=>true,other:x}');
+  });
+
+  // Robustness: property at end of object (before })
+  it('handles property as last in object literal', () => {
+    const result = patch.apply('{other:x,getIsDocker:xuK}');
+    expect(result).toBe('{other:x,getIsDocker:()=>true}');
+  });
+
   // Common
   it('canApply returns false for non-matching source', () => {
     expect(patch.canApply('no match here')).toBe(false);

@@ -25,6 +25,39 @@ describe('internet-access patch', () => {
     expect(result).toBe('{hasInternetAccess:()=>false,isCI:x}');
   });
 
+  // Robustness: $-prefixed minified identifiers
+  it('handles $-prefixed identifiers in property values', () => {
+    const result = patch.apply('{hasInternetAccess:$PK,isCI:r6(!1)}');
+    expect(result).toBe('{hasInternetAccess:()=>false,isCI:r6(!1)}');
+  });
+
+  it('handles $-prefixed identifiers in call receivers', () => {
+    expect(patch.apply('if($x.hasInternetAccess()){}')).toBe('if(false){}');
+  });
+
+  // Robustness: arrow function values
+  it('handles arrow function property values', () => {
+    const result = patch.apply('{hasInternetAccess:()=>checkNet(),isCI:x}');
+    expect(result).toBe('{hasInternetAccess:()=>false,isCI:x}');
+  });
+
+  // Robustness: function call values
+  it('handles function call property values', () => {
+    const result = patch.apply('{hasInternetAccess:doCheck(a,b),isCI:x}');
+    expect(result).toBe('{hasInternetAccess:()=>false,isCI:x}');
+  });
+
+  // Robustness: chained method receiver
+  it('handles chained receiver in method calls', () => {
+    expect(patch.apply('a.b.hasInternetAccess()')).toBe('false');
+  });
+
+  // Robustness: property at end of object (before })
+  it('handles property as last in object literal', () => {
+    const result = patch.apply('{isCI:x,hasInternetAccess:$PK}');
+    expect(result).toBe('{isCI:x,hasInternetAccess:()=>false}');
+  });
+
   // Common
   it('canApply returns false for non-matching source', () => {
     expect(patch.canApply('no match here')).toBe(false);
