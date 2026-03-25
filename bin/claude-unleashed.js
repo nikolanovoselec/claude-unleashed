@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import { RED, YELLOW, CYAN, GREEN, RESET, BOLD } from '../lib/colors.js';
 import { getMode, setMode } from '../lib/mode.js';
 import { askForConsent } from '../lib/consent.js';
@@ -10,6 +12,8 @@ import { parseArgs, prepareUnleashedArgv, prepareSafeArgv } from '../lib/argv.js
 import { applyPatches } from '../lib/patcher.js';
 import { handleError } from '../lib/errors.js';
 import debug from '../lib/debug.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const { isSilent, skipConsent, safeMode: safeModeFlag, noUpdate, channel, pinnedVersion, disableInstallChecks } = parseArgs();
 const { originalCliPath, patchedCliPath, nodeModulesDir, packageJsonPath, consentFlagPath } = resolveCliPaths();
@@ -64,6 +68,17 @@ async function run() {
   // Unleashed mode
   if (!isSilent) console.log(`${YELLOW}[Unleashed] Running Claude in Unleashed mode${RESET}`);
   prepareUnleashedArgv();
+
+  // Inject preload script via NODE_OPTIONS — sets env vars (IS_SANDBOX,
+  // CLAUDE_CODE_BUBBLEWRAP, etc.) before the CLI loads, bypassing root and
+  // sandbox checks without fragile source patching.
+  const preloadPath = path.resolve(__dirname, '..', 'lib', 'preload.js');
+  const existing = process.env.NODE_OPTIONS || '';
+  if (!existing.includes(preloadPath)) {
+    process.env.NODE_OPTIONS = existing
+      ? `${existing} --require ${preloadPath}`
+      : `--require ${preloadPath}`;
+  }
 
   await maybeUpdate();
 

@@ -30,7 +30,7 @@ describe('root-check patch', () => {
     expect(patch.canApply('no match')).toBe(false);
   });
 
-  it('is marked as required', () => {
-    expect(patch.required).toBe(true);
+  it('is optional (preload sets IS_SANDBOX=1 as primary bypass)', () => {
+    expect(patch.required).toBe(false);
   });
 });
